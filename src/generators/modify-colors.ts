@@ -53,12 +53,24 @@ function modifyColorWithCache(rgb: RGBA, theme: Theme, modifyHSL: (hsl: HSLA, po
         return fnCache.get(id)!;
     }
 
+    // 正常进来，第三个参数modifyHSL可以认为是空的函数，没有做任何事情
+    // theme是defaults.ts里的`DEFAULT_THEME`
+    // 1. 先把待转换的颜色转换成hsl
     const hsl = rgbToHSL(rgb);
+    // 2. 沿着第四个参数没给的路径过来，poleColor是null，pole也就是null
     const pole = poleColor == null ? null : parseToHSLWithCache(poleColor);
+    // 3. 沿着第五个参数没给的路径过来，anotherPoleColor是null，，anotherPole也就是null
     const anotherPole = anotherPoleColor == null ? null : parseToHSLWithCache(anotherPoleColor);
+    // 4. 此处，第一个参数是需要更改的颜色，第二个和第三个参数都是null
+    //    而且，modifyHSL什么也没做
+    //    modified == hsl
     const modified = modifyHSL(hsl, pole, anotherPole);
+    // 5. 再把hsl转换回rgb
     const {r, g, b, a} = hslToRGB(modified);
+    // 6. 创建filter矩阵，这一步与hsl或者说输入的参数无关，仅仅与theme有关。
+    //    而theme是defaults.ts中的DEFAULT_THEME
     const matrix = createFilterMatrix(theme);
+    // 7. 应用这个矩阵乘法
     const [rf, gf, bf] = applyColorMatrix([r, g, b], matrix);
 
     const color = (a === 1 ?
@@ -74,6 +86,7 @@ function noopHSL(hsl: HSLA): HSLA {
 }
 
 export function modifyColor(rgb: RGBA, theme: Theme): string {
+    // 第三个参数和第四个参数实际上都没给
     return modifyColorWithCache(rgb, theme, noopHSL);
 }
 

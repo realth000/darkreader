@@ -4,25 +4,46 @@ import type {Theme} from '../../definitions';
 
 
 export function createFilterMatrix(config: Theme): matrix5x5 {
+    // m是
+    //   [1, 0, 0, 0, 0],
+    //   [0, 1, 0, 0, 0],
+    //   [0, 0, 1, 0, 0],
+    //   [0, 0, 0, 1, 0],
+    //   [0, 0, 0, 0, 1],
     let m: matrix5x5 = Matrix.identity();
+
+    // 按照默认的theme来看：
+    // 1. sepia == 0
     if (config.sepia !== 0) {
         m = multiplyMatrices(m, Matrix.sepia(config.sepia / 100));
     }
+    // 2. grayscale == 0
     if (config.grayscale !== 0) {
         m = multiplyMatrices(m, Matrix.grayscale(config.grayscale / 100));
     }
+    // 3. contrast == 100
     if (config.contrast !== 100) {
         m = multiplyMatrices(m, Matrix.contrast(config.contrast / 100));
     }
+    // 4. brightness == 100
     if (config.brightness !== 100) {
         m = multiplyMatrices(m, Matrix.brightness(config.brightness / 100));
     }
+    // 5. mode == 1
     if (config.mode === 1) {
+        // 6. 走这里
+        // Matrix.invertNHue是
+        //   [0.333,  -0.667, -0.667, 0, 1],
+        //   [-0.667,  0.333, -0.667, 0, 1],
+        //   [-0.667, -0.667,  0.333, 0, 1],
+        //   [0,           0,      0, 1, 0],
+        //   [0,           0,      0, 0, 1],
         m = multiplyMatrices(m, Matrix.invertNHue());
     }
     return m;
 }
 
+// 应用到颜色上
 export function applyColorMatrix([r, g, b]: [number, number, number], matrix: matrix5x5): [number, number, number] {
     const rgb: matrix5x1 = [[r / 255], [g / 255], [b / 255], [1], [1]];
     const result = multiplyMatrices<matrix5x1>(matrix, rgb);
